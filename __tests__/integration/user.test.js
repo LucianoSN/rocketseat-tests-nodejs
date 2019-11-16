@@ -1,11 +1,28 @@
 import request from 'supertest';
+import bcrypt from 'bcryptjs';
 import app from '../../src/app';
 
+import User from '../../src/app/models/User';
 import truncate from '../util/truncate';
 
 describe('User', () => {
 	beforeEach(async () => {
 		await truncate();
+	});
+
+	it('should encrypt user password when new user created', async () => {
+		const user = await User.create({
+			name: 'Diego Fernandes',
+			email: 'diego@rocketseat.com.br',
+			password: '12345678',
+		});
+
+		const compareHash = await bcrypt.compare(
+			'12345678',
+			user.password_hash
+		);
+
+		expect(compareHash).toBe(true);
 	});
 
 	it('should be able to register', async () => {
@@ -14,7 +31,7 @@ describe('User', () => {
 			.send({
 				name: 'Diego Fernandes',
 				email: 'diego@rocketseat.com.br',
-				password_hash: '12345678',
+				password: '12345678',
 			});
 
 		expect(response.body).toHaveProperty('id');
@@ -26,7 +43,7 @@ describe('User', () => {
 			.send({
 				name: 'Diego Fernandes',
 				email: 'diego@rocketseat.com.br',
-				password_hash: '12345678',
+				password: '12345678',
 			});
 
 		const response = await request(app)
@@ -34,7 +51,7 @@ describe('User', () => {
 			.send({
 				name: 'Diego Fernandes',
 				email: 'diego@rocketseat.com.br',
-				password_hash: '12345678',
+				password: '12345678',
 			});
 
 		expect(response.status).toBe(400);
